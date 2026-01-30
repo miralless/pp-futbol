@@ -559,44 +559,43 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
         await page.goto(j.url, { waitUntil: 'networkidle2' });
 
         const stats = await page.evaluate((n, jE, jD, jC) => {
-            const res = { nombre: n, PJ: "0", NJ: "0", Tit: "0", Sup: "0", Goles: "0", Am: "0", Roj: "0" };
-            
-            // Usamos getElementById como en la clasificación
-            const tabla = document.getElementById('estadisticasJugador');
-            if (!tabla) return res;
+    const res = { nombre: n, PJ: "0", NJ: "0", Tit: "0", Sup: "0", Goles: "0", Am: "0", Roj: "0" };
+    
+    // En lugar de buscar por ID, buscamos TODAS las tablas y nos quedamos con la que tenga estadísticas
+    const tablas = Array.from(document.querySelectorAll('table'));
+    const tablaEstadisticas = tablas.find(t => t.innerText.includes('Jugados') || t.id === 'estadisticasJugador');
 
-            // Buscamos la fila de totales (que en esta tabla está en el tfoot o como clase 'totales')
-            const filaTotales = tabla.querySelector('tr.totales');
-            
-            if (filaTotales) {
-                // Obtenemos las celdas (th/td) igual que en clasificación
-                const celdas = Array.from(filaTotales.querySelectorAll('th, td'));
+    if (!tablaEstadisticas) return res;
 
-                // Mapeo manual de índices basado en la estructura de LaPreferente
-                // ths[1] suele ser "Jugados: X"
-                const pjTexto = celdas[1]?.innerText || "";
-                const matchPJ = pjTexto.match(/\d+/);
-                res.PJ = matchPJ ? matchPJ[0] : "0";
+    // Buscamos la última fila de la tabla (donde suelen estar los totales)
+    const filas = Array.from(tablaEstadisticas.querySelectorAll('tr'));
 
-                res.Tit = celdas[2]?.innerText.trim() || "0";
-                res.Goles = celdas[4]?.innerText.trim() || "0";
-                res.Am = celdas[5]?.innerText.trim() || "0";
-                res.Roj = celdas[6]?.innerText.trim() || "0";
+    const filaTotales = filas.findLast(f => f.innerText.includes('Totales') || f.classList.contains('totales') || f.classList.contains('TOTALES'));
 
-                // Cálculos numéricos
-                const pjInt = parseInt(res.PJ, 10) || 0;
-                const titInt = parseInt(res.Tit, 10) || 0;
-                res.Sup = (pjInt - titInt).toString();
+    if (filaTotales) {
+        const tds = Array.from(filaTotales.querySelectorAll('th, td'));
 
-                let jT = 0;
-                if (n === "Ekain Etxebarria") jT = jE;
-                else if (n === "Jon García") jT = jD;
-                else if (n === "Eneko Ebro") jT = jC;
+        // Aplicamos la misma lógica de índices que te funciona
+        const pjMatch = tds[1]?.innerText.match(/\d+/);
+        res.PJ = pjMatch ? pjMatch[0] : "0";
+        res.Tit = tds[2]?.innerText.trim() || "0";
+        res.Goles = tds[4]?.innerText.trim() || "0";
+        res.Am = tds[5]?.innerText.trim() || "0";
+        res.Roj = tds[6]?.innerText.trim() || "0";
 
-                res.NJ = Math.max(0, jT - pjInt).toString();
-            }
-            return res;
-        }, j.nombre, jEibarB, jDerio, jCartagena);
+        const pjInt = parseInt(res.PJ, 10) || 0;
+        const titInt = parseInt(res.Tit, 10) || 0;
+        res.Sup = (pjInt - titInt).toString();
+
+        let jT = 0;
+        if (n === "Ekain Etxebarria") jT = jE;
+        else if (n === "Jon García") jT = jD;
+        else if (n === "Eneko Ebro") jT = jC;
+
+        res.NJ = Math.max(0, jT - pjInt).toString();
+    }
+    return res;
+}, j.nombre, jEibarB, jDerio, jCartagena);
 
         baseDeDatosFutbol.push({ 
             tipo: "jugador", 
