@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 const admin = require('firebase-admin');
+const path = require('path');
 
 // 1. CONFIGURACIÓN DE FIREBASE
 const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT 
@@ -562,10 +563,16 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
         await page.goto(j.url, { waitUntil: 'networkidle2' });
 
         // --- CAPTURA DE PANTALLA ---
-            // Reemplazamos espacios en el nombre para el archivo
             const nombreArchivo = j.nombre.replace(/\s+/g, '_').toLowerCase();
-            await page.screenshot({ path: `./screenshot_${nombreArchivo}.png`, fullPage: true });
-            console.log(`   📂 Captura guardada como: screenshot_${nombreArchivo}.png`);
+// Forzamos la ruta a la raíz del proyecto para evitar problemas de permisos
+const screenshotPath = path.join(process.cwd(), `screenshot_${nombreArchivo}.png`);
+
+try {
+    await page.screenshot({ path: screenshotPath, fullPage: true });
+    console.log(`✅ Captura generada localmente en el servidor: ${screenshotPath}`);
+} catch (screenshotError) {
+    console.error(`❌ Fallo al escribir el archivo de imagen: ${screenshotError.message}`);
+}
 
         const stats = await page.evaluate((n, jE, jD, jC) => {
     const res = { nombre: n, PJ: "0", NJ: "0", Tit: "0", Sup: "0", Goles: "0", Am: "0", Roj: "0" };
