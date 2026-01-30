@@ -561,6 +561,12 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
         // Usamos la misma configuración de espera que en clasificación
         await page.goto(j.url, { waitUntil: 'networkidle2' });
 
+        // --- CAPTURA DE PANTALLA ---
+            // Reemplazamos espacios en el nombre para el archivo
+            const nombreArchivo = j.nombre.replace(/\s+/g, '_').toLowerCase();
+            await page.screenshot({ path: `screenshot_${nombreArchivo}.png`, fullPage: true });
+            console.log(`   📂 Captura guardada como: screenshot_${nombreArchivo}.png`);
+
         const stats = await page.evaluate((n, jE, jD, jC) => {
     const res = { nombre: n, PJ: "0", NJ: "0", Tit: "0", Sup: "0", Goles: "0", Am: "0", Roj: "0" };
     
