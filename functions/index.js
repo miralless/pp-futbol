@@ -564,7 +564,7 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
         // --- CAPTURA DE PANTALLA ---
             // Reemplazamos espacios en el nombre para el archivo
             const nombreArchivo = j.nombre.replace(/\s+/g, '_').toLowerCase();
-            await page.screenshot({ path: `screenshot_${nombreArchivo}.png`, fullPage: true });
+            await page.screenshot({ path: `./screenshot_${nombreArchivo}.png`, fullPage: true });
             console.log(`   📂 Captura guardada como: screenshot_${nombreArchivo}.png`);
 
         const stats = await page.evaluate((n, jE, jD, jC) => {
@@ -579,7 +579,7 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
     // Buscamos la última fila de la tabla (donde suelen estar los totales)
     const filas = Array.from(tablaEstadisticas.querySelectorAll('tr'));
 
-    const filaTotales = filas.findLast(f => f.innerText.includes('Totales') || f.classList.contains('totales') || f.classList.contains('TOTALES') || texto.includes('totals') || texto.includes('Totals') || texto.includes('TOTALS'));
+    const filaTotales = filas.findLast(f => f.innerText.includes('Totales') || f.classList.contains('totales') || f.classList.contains('TOTALES') || f.classList.contains('totals') || f.classList.contains('Totals') || f.classList.contains('TOTALS'));
 
     if (filaTotales) {
         const tds = Array.from(filaTotales.querySelectorAll('th, td'));
