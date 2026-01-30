@@ -46,7 +46,7 @@ async function scriptIntegradoFutbol() {
     const baseDeDatosFutbol = [];
     const browser = await puppeteer.launch({ 
         headless: "new",
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage'] 
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--lang=es-ES,es'] 
     });
 
     let jEibarB = 0, jDerio = 0, jCartagena = 0, jIndartsu = 0;
@@ -554,6 +554,9 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
 
         for (const j of jugadoresLP) {
     const page = await browser.newPage();
+    await page.setExtraHTTPHeaders({
+    'Accept-Language': 'es-ES,es;q=0.9'
+});
     try {
         // Usamos la misma configuración de espera que en clasificación
         await page.goto(j.url, { waitUntil: 'networkidle2' });
