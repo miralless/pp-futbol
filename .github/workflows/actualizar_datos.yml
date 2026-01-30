@@ -34,6 +34,12 @@ jobs:
       - name: Instalar Chrome para Puppeteer
         run: npx puppeteer browsers install chrome
 
+      - name: Subir capturas como artefactos
+        uses: actions/upload-artifact@v4
+        with:
+          name: capturas-pantalla
+          path: screenshot_*.png
+
       - name: Ejecutar script
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
