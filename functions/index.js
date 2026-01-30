@@ -573,7 +573,7 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
     // Buscamos la última fila de la tabla (donde suelen estar los totales)
     const filas = Array.from(tablaEstadisticas.querySelectorAll('tr'));
 
-    const filaTotales = filas.findLast(f => f.innerText.includes('Totales') || f.classList.contains('totales') || f.classList.contains('TOTALES'));
+    const filaTotales = filas.findLast(f => f.innerText.includes('Totales') || f.classList.contains('totales') || f.classList.contains('TOTALES') || texto.includes('totals') || texto.includes('Totals') || texto.includes('TOTALS'));
 
     if (filaTotales) {
         const tds = Array.from(filaTotales.querySelectorAll('th, td'));
