@@ -562,13 +562,6 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
         // Usamos la misma configuración de espera que en clasificación
         await page.goto(j.url, { waitUntil: 'networkidle2' });
 
-try {
-    await page.screenshot({ path: screenshotPath, fullPage: true });
-    console.log(`✅ Captura generada localmente en el servidor: ${screenshotPath}`);
-} catch (screenshotError) {
-    console.error(`❌ Fallo al escribir el archivo de imagen: ${screenshotError.message}`);
-}
-
         const stats = await page.evaluate((n, jE, jD, jC) => {
     const res = { nombre: n, PJ: "0", NJ: "0", Tit: "0", Sup: "0", Goles: "0", Am: "0", Roj: "0" };
     
