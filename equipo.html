@@ -178,14 +178,16 @@
 
             const lastDetails = document.createElement("div");
             lastDetails.className = "detailsDiv";
+
             
-            const esCasa = teamName == ultimo.local;
+            
+            const esCasa = "Eibar B" == ultimo.local || "CD Derio" == ultimo.local;
             const rivalLimpio = esCasa ? ultimo.visitante : ultimo.local;
 
             lastDetails.innerHTML = `
-                <div class="nombreEquipo partido ${esCasa ? 'verde' : ''}">${esCasa ? nombreOficial : rivalLimpio}</div>
+                <div class="nombreEquipo partido ${esCasa ? 'verde' : ''}">${ultimo.local}</div>
                 <div class="partido" style="font-size: 25px; font-style: italic; width: fit-content; white-space: nowrap;">${ultimo.resultado}</div>
-                <div class="nombreEquipo partido ${!esCasa ? 'verde' : ''}">${!esCasa ? nombreOficial : rivalLimpio}</div>
+                <div class="nombreEquipo partido ${!esCasa ? 'verde' : ''}">${ultimo.visitante}</div>
             `;
             teamContainer.appendChild(lastDetails);
           }

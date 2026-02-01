@@ -562,11 +562,6 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
         // Usamos la misma configuración de espera que en clasificación
         await page.goto(j.url, { waitUntil: 'networkidle2' });
 
-        // --- CAPTURA DE PANTALLA ---
-            const nombreArchivo = j.nombre.replace(/\s+/g, '_').toLowerCase();
-// Forzamos la ruta a la raíz del proyecto para evitar problemas de permisos
-const screenshotPath = path.join(process.cwd(), `screenshot_${nombreArchivo}.png`);
-
 try {
     await page.screenshot({ path: screenshotPath, fullPage: true });
     console.log(`✅ Captura generada localmente en el servidor: ${screenshotPath}`);
