@@ -39,9 +39,10 @@ jobs:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: node index.js
 
-      - name: Subir capturas como artefactos
-        if: always()
+      - name: Extraer Capturas de Pantalla
+        if: always() # Esto hace que se ejecute aunque el paso anterior falle
         uses: actions/upload-artifact@v4
         with:
-          name: capturas-pantalla
-          path: ./*.png  
+          name: evidencias-scraping
+          path: ./*.png  # Recoge todos los archivos PNG de la raíz
+          retention-days: 1 

@@ -553,17 +553,30 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
             { nombre: "Jon García", url: "https://www.lapreferente.com/J355644C22283/cd-derio/jon.html" }
         ];
 
+        const path = require('path');
+
         for (const j of jugadoresLP) {
     const page = await browser.newPage();
+    await page.setViewport({ width: 1366, height: 768 });
     await page.setExtraHTTPHeaders({
     'Accept-Language': 'es-ES,es;q=0.9'
 });
     try {
         // Usamos la misma configuración de espera que en clasificación
-        await page.goto(j.url, { timeout: 10000 });
+        console.log(`📸 Preparando captura para: ${j.nombre}`);
+        await page.goto(j.url, { waitUntil: 'networkidle2', timeout: 60000 });
+
+        await new Promise(r => setTimeout(r, 5000));
+
+        // --- CAPTURA DE PANTALLA DE DEBUG ---
+        const nombreArchivo = `debug_${j.nombre.replace(/\s+/g, '_').toLowerCase()}.png`;
+        const rutaAbsoluta = path.join(process.cwd(), nombreArchivo);
+        
+        await page.screenshot({ path: rutaAbsoluta, fullPage: true });
+        console.log(`📷 Captura guardada en servidor: ${rutaAbsoluta}`);
 
         const stats = await page.evaluate((n, jE, jD, jC) => {
-    const res = { nombre: n, PJ: "0", NJ: "0", Tit: "0", Sup: "0", Goles: "0", Am: "0", Roj: "0" };
+    const res = { nombre: n, PJ: "00", NJ: "0", Tit: "0", Sup: "0", Goles: "0", Am: "0", Roj: "0" };
     
     // En lugar de buscar por ID, buscamos TODAS las tablas y nos quedamos con la que tenga estadísticas
     const tablas = Array.from(document.querySelectorAll('table'));
