@@ -149,7 +149,7 @@ async function cargarDetalle() {
         { label: "TITULAR", valor: 2 },
         { label: "SUPLENTE", valor: 1 },
         { label: "GOLES", valor: 1 },
-        { label: "POR PARTIDO", valor: (1 / 3).toFixed(2) },
+        { label: "POR PARTIDO", valor: 0.33 },
         { label: "AMARILLAS", valor: 0 },
         { label: "ROJAS", valor: 0 }
       ]
@@ -161,6 +161,17 @@ async function cargarDetalle() {
         { label: "SUPLENTE", valor: dataStats.Sup },
         { label: dataStats.Goles >= 0 ? "GOLES" : "GOLES RECIB.", valor: dataStats.Goles > 0 ? dataStats.Goles : dataStats.Goles * (-1) },
         { label: "POR PARTIDO", valor: dataStats.Goles > 0 ? (dataStats.Goles / dataStats.PJ).toFixed(2) : ((dataStats.Goles * (-1)) / dataStats.PJ).toFixed(2) },
+        { label: "AMARILLAS", valor: dataStats.Am },
+        { label: "ROJAS", valor: dataStats.Roj }
+      ];
+
+      const camposEE = [
+        { label: "JUGADOS", valor: dataStats.PJ },
+        { label: "SIN JUGAR", valor: dataStats.NJ },
+        { label: "TITULAR", valor: dataStats.Tit },
+        { label: "SUPLENTE", valor: dataStats.Sup },
+        { label: dataStats.Goles >= 0 ? "GOLES" : "GOLES RECIB.", valor: dataStats.Goles > 0 ? dataStats.Goles : dataStats.Goles * (-1) },
+        { label: "POR PARTIDO", valor: dataStats.Goles > 0 ? ((dataStats.Goles - camposEbroBA[4].valor) / (dataStats.PJ - camposEbroBA[4].valor)).toFixed(2) : ((dataStats.Goles * (-1)) / dataStats.PJ).toFixed(2) },
         { label: "AMARILLAS", valor: dataStats.Am },
         { label: "ROJAS", valor: dataStats.Roj }
       ];
@@ -180,13 +191,13 @@ async function cargarDetalle() {
         contenedor.appendChild(filaStats);
       } else {
         var indexE = 0;
-        campos.forEach(c => {
+        camposEE.forEach(c => {
           const statDiv = document.createElement("div");
           statDiv.classList.add("stat-item");
           statDiv.innerHTML = `
             <strong style="text-decoration: underline; font-size: 15px;">${c.label}</strong>
             <br><br>
-            <p style="font-size: 18px; font-style: italic;">${c.valor - camposEbroBA[indexE].valor ?? "0"}</p>
+            <p style="font-size: 18px; font-style: italic;">${c.label != "POR PARTIDO" ? c.valor - camposEbroBA[indexE].valor : c.valor}</p>
           `;
           filaStats.appendChild(statDiv);
           indexE++;
