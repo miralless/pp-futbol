@@ -140,6 +140,28 @@ async function cargarDetalle() {
       filaInfo.appendChild(dorsalBox);
       contenedor.appendChild(filaInfo);
 
+      let valorNJ = "0";
+
+      try {
+          // Buscamos el documento clasificacion_NombreDelEquipo
+          const idClasificacion = `clasificacion_${idNumerico == "01" ? "eibar_b" : idNumerico == "02" ? "cd_derio" : "fc_cartagena"}`;
+          const refClasif = doc(db, "seguimiento_futbol", idClasificacion);
+          const snapClasif = await getDoc(refClasif);
+          
+          if (snapClasif.exists()) {
+            snapClasif.tabla.forEach(elemento => {
+              if (elemento.nombre == "S.D. Eibar B" || elemento.nombre == "F.C. Cartagena" || elemento.nombre == "C.D. Derio") {
+                valorNJ = elemento.Jugados - dataStats.PJ;
+              }
+            });
+          } else {
+            valorNJ = "-"; // Si no existe el doc de clasificación
+          }
+        } catch (err) {
+          console.error("Error obteniendo clasificación para NJ:", err);
+          valorNJ = "-";
+        }
+
       // === Fila 3: Estadísticas Clave ===
       const filaStats = crearFila();
 
@@ -156,7 +178,7 @@ async function cargarDetalle() {
 
       const campos = [
         { label: "JUGADOS", valor: dataStats.PJ },
-        { label: "SIN JUGAR", valor: dataStats.NJ },
+        { label: "SIN JUGAR", valor: dataStats.NJ != 0 ? dataStats.NJ : valorNJ },
         { label: "TITULAR", valor: dataStats.Tit },
         { label: "SUPLENTE", valor: dataStats.Sup },
         { label: nombreReal != "Jon Garcia" ? "GOLES" : "GOLES RECIB.", valor: dataStats.Goles },

@@ -564,7 +564,7 @@ for (const j of jugadores) {
         await page.waitForSelector('table.zztable.stats', { timeout: 20000 });
 
         const stats = await page.evaluate((jugadorActual, jE, jD, jC) => {
-            const res = { nombre: jugadorActual.nombre, PJ: "0", NJ: "0", Tit: "0", Sup: "0", Goles: "0", Am: "0", Roj: "0" };
+            const res = { nombre: jugadorActual.nombre, PJ: "0", Tit: "0", Sup: "0", Goles: "0", Am: "0", Roj: "0" };
             
             const tabla = document.querySelector('table.zztable.stats');
             if (!tabla) return res;
@@ -583,7 +583,7 @@ for (const j of jugadores) {
                 
                 // Lógica especial para Jon Garcia (Goles en columna 5 tras split) o resto (columna 9)
                 if (jugadorActual.nombre === "Jon Garcia") {
-                    const textoGoles = celdas[5]?.innerText.trim() || "0-0";
+                    const textoGoles = celdas[5]?.innerText.trim() || "0";
                     res.Goles = textoGoles.split("-")[1] || "0";
                 } else {
                     res.Goles = celdas[9]?.innerText.trim() || "0";
@@ -591,15 +591,6 @@ for (const j of jugadores) {
 
                 res.Am = celdas[12]?.innerText.trim() || "0";
                 res.Roj = celdas[14]?.innerText.trim() || "0";
-
-                // Cálculo de NJ (No Jugados)
-                const pjInt = parseInt(res.PJ, 10) || 0;
-                let jT = 0;
-                if (jugadorActual.nombre === "Ekain Etxebarria") jT = jE;
-                else if (jugadorActual.nombre === "Jon Garcia") jT = jD; // Corregido: "Jon Garcia" sin tilde para coincidir con tu array
-                else if (jugadorActual.nombre === "Eneko Ebro") jT = jC;
-
-                res.NJ = Math.max(0, jT - pjInt).toString();
             }
             return res;
         }, j, jEibarB, jDerio, jCartagena); // Inyectamos todas las variables necesarias
