@@ -556,9 +556,10 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
         const path = require('path');
         const fs = require('fs');
 
-        const dir = './capturas_debug';
-if (!fs.existsSync(dir)){
-    fs.mkdirSync(dir);
+        const folderPath = path.join(__dirname, 'capturas_debug');
+
+if (!fs.existsSync(folderPath)){
+    fs.mkdirSync(folderPath, { recursive: true });
 }
 
         for (const j of jugadoresLP) {
@@ -573,13 +574,13 @@ if (!fs.existsSync(dir)){
         await page.goto(j.url, { waitUntil: 'networkidle2', timeout: 60000 });
 
         await new Promise(r => setTimeout(r, 5000));
-
-        // --- CAPTURA DE PANTALLA DE DEBUG ---
-        const rutaCaptura = path.join(process.cwd(), 'capturas_debug', `debug_${j.nombre.replace(/\s+/g, '_')}.png`);
         
         try {
-    await page.screenshot({ path: rutaCaptura, fullPage: true });
-    console.log(`📸 FOTO GENERADA: ${rutaCaptura}`);
+    const nombreArchivo = `debug_${j.nombre.replace(/\s+/g, '_')}.png`;
+const rutaFinal = path.join(folderPath, nombreArchivo);
+
+await page.screenshot({ path: rutaFinal, fullPage: true });
+console.log(`📸 ARCHIVO CREADO EN: ${rutaFinal}`);
 } catch (err) {
     console.error(`❌ ERROR AL GENERAR FOTO: ${err.message}`);
 }
