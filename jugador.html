@@ -72,7 +72,7 @@ const db = getFirestore(app);
 // ==== MAPEO DE IDS A NOMBRES REALES ====
 const mapeoJugadores = {
   "01": "Ekain Etxebarria",
-  "02": "Jon García",
+  "02": "Jon Garcia",
   "03": "Jon Hermida",
   "04": "Eneko Ebro",
   "05": "Peio Manrique",
@@ -159,19 +159,8 @@ async function cargarDetalle() {
         { label: "SIN JUGAR", valor: dataStats.NJ },
         { label: "TITULAR", valor: dataStats.Tit },
         { label: "SUPLENTE", valor: dataStats.Sup },
-        { label: dataStats.Goles >= 0 ? "GOLES" : "GOLES RECIB.", valor: dataStats.Goles > 0 ? dataStats.Goles : dataStats.Goles * (-1) },
-        { label: "POR PARTIDO", valor: dataStats.Goles > 0 ? (dataStats.Goles / dataStats.PJ).toFixed(2) : ((dataStats.Goles * (-1)) / dataStats.PJ).toFixed(2) },
-        { label: "AMARILLAS", valor: dataStats.Am },
-        { label: "ROJAS", valor: dataStats.Roj }
-      ];
-
-      const camposEE = [
-        { label: "JUGADOS", valor: dataStats.PJ },
-        { label: "SIN JUGAR", valor: dataStats.NJ },
-        { label: "TITULAR", valor: dataStats.Tit },
-        { label: "SUPLENTE", valor: dataStats.Sup },
-        { label: dataStats.Goles >= 0 ? "GOLES" : "GOLES RECIB.", valor: dataStats.Goles > 0 ? dataStats.Goles : dataStats.Goles * (-1) },
-        { label: "POR PARTIDO", valor: dataStats.Goles > 0 ? ((dataStats.Goles - camposEbroBA[4].valor) / (dataStats.PJ - camposEbroBA[4].valor)).toFixed(2) : ((dataStats.Goles * (-1)) / dataStats.PJ).toFixed(2) },
+        { label: nombreReal != "Jon Garcia" ? "GOLES" : "GOLES RECIB.", valor: dataStats.Goles },
+        { label: "POR PARTIDO", valor: (dataStats.Goles / dataStats.PJ).toFixed(2) },
         { label: "AMARILLAS", valor: dataStats.Am },
         { label: "ROJAS", valor: dataStats.Roj }
       ];
@@ -191,13 +180,13 @@ async function cargarDetalle() {
         contenedor.appendChild(filaStats);
       } else {
         var indexE = 0;
-        camposEE.forEach(c => {
+        campos.forEach(c => {
           const statDiv = document.createElement("div");
           statDiv.classList.add("stat-item");
           statDiv.innerHTML = `
             <strong style="text-decoration: underline; font-size: 15px;">${c.label}</strong>
             <br><br>
-            <p style="font-size: 18px; font-style: italic;">${c.label != "POR PARTIDO" ? c.valor - camposEbroBA[indexE].valor : c.valor}</p>
+            <p style="font-size: 18px; font-style: italic;">${c.label == "SIN JUGAR" ? c.valor - 20 : c.valor}</p>
           `;
           filaStats.appendChild(statDiv);
           indexE++;

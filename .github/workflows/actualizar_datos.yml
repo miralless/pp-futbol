@@ -38,17 +38,3 @@ jobs:
         env:
           FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: node index.js
-
-      - name: Listar archivos para depurar # Paso extra para ver qué hay realmente
-        if: always()
-        run: |
-          ls -R
-          pwd  
-
-      - name: Subir todas las capturas
-        if: always() # Obligatorio para ver las fotos aunque el script falle
-        uses: actions/upload-artifact@v4
-        with:
-          name: evidencias-del-servidor
-          path: capturas_debug/  # Sube la carpeta entera
-          if-no-files-found: warn

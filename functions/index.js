@@ -546,91 +546,71 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
             }
         }
 
-        // --- 3. JUGADORES (LAPREFERENTE) ---
-        const jugadoresLP = [
-            { nombre: "Ekain Etxebarria", url: "https://www.lapreferente.com/?IDjugador=355665" },
-            { nombre: "Eneko Ebro", url: "https://www.lapreferente.com/?IDjugador=355646" },
-            { nombre: "Jon García", url: "https://www.lapreferente.com/J355644C22283/cd-derio/jon.html" }
-        ];
+        // --- 3. JUGADORES (CEROACERO) ---
+const jugadores = [
+    { nombre: "Jon Garcia", url: "https://www.ceroacero.es/jugador/jon-garcia/2773981/resultados?epoca_id=155&tpstats=club&ps=1" },
+    { nombre: "Ekain Etxebarria", url: "https://www.ceroacero.es/jugador/ekain-etxebarria/2507672/resultados?epoca_id=155&tpstats=club&ps=1" },
+    { nombre: "Eneko Ebro", url: "https://www.ceroacero.es/jugador/eneko-ebro/1035277/resultados?group_tpstats=epoca&tpstats=all&grp=1&edicao_id=202631&epoca_id=155&eve=&id=1035277&op=zoomstats" }
+];
 
-        const path = require('path');
-        const fs = require('fs');
-
-        const folderPath = path.join(__dirname, 'capturas_debug');
-
-if (!fs.existsSync(folderPath)){
-    fs.mkdirSync(folderPath, { recursive: true });
-}
-
-        for (const j of jugadoresLP) {
+for (const j of jugadores) {
     const page = await browser.newPage();
-    await page.setViewport({ width: 1366, height: 768 });
-    await page.setExtraHTTPHeaders({
-    'Accept-Language': 'es-ES,es;q=0.9'
-});
+    await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
+    
     try {
-        // Usamos la misma configuración de espera que en clasificación
-        console.log(`📸 Preparando captura para: ${j.nombre}`);
         await page.goto(j.url, { waitUntil: 'networkidle2', timeout: 60000 });
 
-        await new Promise(r => setTimeout(r, 5000));
-        
-        try {
-    const nombreArchivo = `debug_${j.nombre.replace(/\s+/g, '_')}.png`;
-const rutaFinal = path.join(folderPath, nombreArchivo);
+        // Esperamos a la tabla específica de Ceroacero
+        await page.waitForSelector('table.zztable.stats', { timeout: 20000 });
 
-await page.screenshot({ path: rutaFinal, fullPage: true });
-console.log(`📸 ARCHIVO CREADO EN: ${rutaFinal}`);
-} catch (err) {
-    console.error(`❌ ERROR AL GENERAR FOTO: ${err.message}`);
-}
+        const stats = await page.evaluate((jugadorActual, jE, jD, jC) => {
+            const res = { nombre: jugadorActual.nombre, PJ: "0", NJ: "0", Tit: "0", Sup: "0", Goles: "0", Am: "0", Roj: "0" };
+            
+            const tabla = document.querySelector('table.zztable.stats');
+            if (!tabla) return res;
 
-        const stats = await page.evaluate((n, jE, jD, jC) => {
-    const res = { nombre: n, PJ: "00", NJ: "0", Tit: "0", Sup: "0", Goles: "0", Am: "0", Roj: "0" };
-    
-    // En lugar de buscar por ID, buscamos TODAS las tablas y nos quedamos con la que tenga estadísticas
-    const tablas = Array.from(document.querySelectorAll('table'));
-    const tablaEstadisticas = tablas.find(t => t.innerText.includes('Jugados') || t.id === 'estadisticasJugador');
+            // Buscamos la fila de totales (clase .totals)
+            const filas = Array.from(tabla.querySelectorAll('tr'));
+            const filaTotal = filas.find(f => f.querySelector('.totals'));
 
-    if (!tablaEstadisticas) return res;
+            if (filaTotal) {
+                const celdas = Array.from(filaTotal.querySelectorAll('td'));
 
-    // Buscamos la última fila de la tabla (donde suelen estar los totales)
-    const filas = Array.from(tablaEstadisticas.querySelectorAll('tr'));
+                // Mapeo según el HTML de Ceroacero
+                res.PJ = celdas[1]?.innerText.trim() || "0";
+                res.Tit = celdas[7]?.innerText.trim() || "0";
+                res.Sup = celdas[8]?.innerText.trim() || "0";
+                
+                // Lógica especial para Jon Garcia (Goles en columna 5 tras split) o resto (columna 9)
+                if (jugadorActual.nombre === "Jon Garcia") {
+                    const textoGoles = celdas[5]?.innerText.trim() || "0-0";
+                    res.Goles = textoGoles.split("-")[1] || "0";
+                } else {
+                    res.Goles = celdas[9]?.innerText.trim() || "0";
+                }
 
-    const filaTotales = filas.findLast(f => f.innerText.includes('Totales') || f.classList.contains('totales') || f.classList.contains('TOTALES') || f.classList.contains('totals') || f.classList.contains('Totals') || f.classList.contains('TOTALS'));
+                res.Am = celdas[12]?.innerText.trim() || "0";
+                res.Roj = celdas[14]?.innerText.trim() || "0";
 
-    if (filaTotales) {
-        const tds = Array.from(filaTotales.querySelectorAll('th, td'));
+                // Cálculo de NJ (No Jugados)
+                const pjInt = parseInt(res.PJ, 10) || 0;
+                let jT = 0;
+                if (jugadorActual.nombre === "Ekain Etxebarria") jT = jE;
+                else if (jugadorActual.nombre === "Jon Garcia") jT = jD; // Corregido: "Jon Garcia" sin tilde para coincidir con tu array
+                else if (jugadorActual.nombre === "Eneko Ebro") jT = jC;
 
-        // Aplicamos la misma lógica de índices que te funciona
-        const pjMatch = tds[1]?.innerText.match(/\d+/);
-        res.PJ = pjMatch ? pjMatch[0] : "0";
-        res.Tit = tds[2]?.innerText.trim() || "0";
-        res.Goles = tds[4]?.innerText.trim() || "0";
-        res.Am = tds[5]?.innerText.trim() || "0";
-        res.Roj = tds[6]?.innerText.trim() || "0";
-
-        const pjInt = parseInt(res.PJ, 10) || 0;
-        const titInt = parseInt(res.Tit, 10) || 0;
-        res.Sup = (pjInt - titInt).toString();
-
-        let jT = 0;
-        if (n === "Ekain Etxebarria") jT = jE;
-        else if (n === "Jon García") jT = jD;
-        else if (n === "Eneko Ebro") jT = jC;
-
-        res.NJ = Math.max(0, jT - pjInt).toString();
-    }
-    return res;
-}, j.nombre, jEibarB, jDerio, jCartagena);
+                res.NJ = Math.max(0, jT - pjInt).toString();
+            }
+            return res;
+        }, j, jEibarB, jDerio, jCartagena); // Inyectamos todas las variables necesarias
 
         baseDeDatosFutbol.push({ 
             tipo: "jugador", 
-            origen: "LaPreferente", 
+            origen: "Ceroacero", 
             ...stats 
         });
         
-        console.log(`✅ Datos de jugador extraídos: ${j.nombre}`);
+        console.log(`✅ Datos de jugador extraídos: ${j.nombre} (PJ: ${stats.PJ})`);
 
     } catch (e) { 
         console.error(`❌ Error Jugador ${j.nombre}: `, e.message); 
