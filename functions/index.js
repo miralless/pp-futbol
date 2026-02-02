@@ -560,7 +560,7 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
 });
     try {
         // Usamos la misma configuración de espera que en clasificación
-        await page.goto(j.url, { waitUntil: 'networkidle2' });
+        await page.goto(j.url, { timeout: 10000 });
 
         const stats = await page.evaluate((n, jE, jD, jC) => {
     const res = { nombre: n, PJ: "0", NJ: "0", Tit: "0", Sup: "0", Goles: "0", Am: "0", Roj: "0" };
