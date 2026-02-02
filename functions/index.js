@@ -47,7 +47,7 @@ async function scriptIntegradoFutbol() {
     const baseDeDatosFutbol = [];
     const browser = await puppeteer.launch({ 
         headless: "new",
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--lang=es-ES,es'] 
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--lang=es-ES,es', '--disable-web-security',] 
     });
 
     let jEibarB = 0, jDerio = 0, jCartagena = 0, jIndartsu = 0;
@@ -554,6 +554,12 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
         ];
 
         const path = require('path');
+        const fs = require('fs');
+
+        const dir = './capturas_debug';
+if (!fs.existsSync(dir)){
+    fs.mkdirSync(dir);
+}
 
         for (const j of jugadoresLP) {
     const page = await browser.newPage();
@@ -569,11 +575,14 @@ const ultimoResultado = await page.evaluate((nFiltro) => {
         await new Promise(r => setTimeout(r, 5000));
 
         // --- CAPTURA DE PANTALLA DE DEBUG ---
-        const nombreArchivo = `debug_${j.nombre.replace(/\s+/g, '_').toLowerCase()}.png`;
-        const rutaAbsoluta = path.join(process.cwd(), nombreArchivo);
+        const rutaCaptura = path.join(process.cwd(), 'capturas_debug', `debug_${j.nombre.replace(/\s+/g, '_')}.png`);
         
-        await page.screenshot({ path: rutaAbsoluta, fullPage: true });
-        console.log(`📷 Captura guardada en servidor: ${rutaAbsoluta}`);
+        try {
+    await page.screenshot({ path: rutaCaptura, fullPage: true });
+    console.log(`📸 FOTO GENERADA: ${rutaCaptura}`);
+} catch (err) {
+    console.error(`❌ ERROR AL GENERAR FOTO: ${err.message}`);
+}
 
         const stats = await page.evaluate((n, jE, jD, jC) => {
     const res = { nombre: n, PJ: "00", NJ: "0", Tit: "0", Sup: "0", Goles: "0", Am: "0", Roj: "0" };
