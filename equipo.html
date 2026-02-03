@@ -219,7 +219,7 @@
 
           nextDetails.innerHTML = `
               <div class="nombreEquipo partido ${esCasaProx ? 'verde' : ''}">${tablaData[0].equipo_1}</div>
-              <div class="partido" style="font-size: 25px; font-style: italic; width: fit-content;">${hora}</div>
+              <div class="partido" style="font-size: 25px; font-style: italic; width: fit-content;">${(parseInt(hora.split(":")[0]) + 1) + ":" + hora.split(":")[1]}</div>
               <div class="nombreEquipo partido ${!esCasaProx ? 'verde' : ''}">${tablaData[0].equipo_2}</div>
           `;
           teamContainer.appendChild(nextDetails);   
@@ -563,7 +563,7 @@
 
           nextDetails.innerHTML = `
               <div class="nombreEquipo partido ${esCasaProx ? 'verde' : ''}">${tablaData[0].equipo_1}</div>
-              <div class="partido" style="font-size: 25px; font-style: italic; width: fit-content;">${hora}</div>
+              <div class="partido" style="font-size: 25px; font-style: italic; width: fit-content;">${(parseInt(hora.split(":")[0]) + 1) + ":" + hora.split(":")[1]}</div>
               <div class="nombreEquipo partido ${!esCasaProx ? 'verde' : ''}">${tablaData[0].equipo_2}</div>
           `;
           teamContainer.appendChild(nextDetails);
