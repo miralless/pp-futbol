@@ -630,12 +630,14 @@ for (const j of jugadores) {
                         const val = celdas[i + 1]?.innerText.trim() || "0";
                         if (txt === "Jokatutakoak") res.PJ = val;
                         if (txt === "Hamaikakoan") res.Tit = val;
-                        if (txt === "Ordezkoa") res.Sup = val;
+                        // if (txt === "Ordezkoa") res.Sup = val;
                         if (txt === "Guztira") res.Goles = val;
                         if (txt === "Txartel horia") res.Am = val;
                         if (txt === "Txartel horia bikoitza") biko = parseInt(val) || 0;
                         if (txt === "Txartel gorria") gorria = parseInt(val) || 0;
                     });
+                    res.Sup = parseInt(res.PJ) - parseInt(res.Tit);
+                    res.Sup = res.Sup.toString();
                     res.Roj = (biko + gorria).toString();
                     res.NJ = Math.max(0, jI - parseInt(res.PJ)).toString();
                     return res;
