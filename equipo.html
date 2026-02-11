@@ -15,6 +15,8 @@
     .team-container { width: 100%; margin: 30px auto; display: flex; flex-direction: column; gap: 20px; padding: 0 20px; flex: 1; justify-content: center; }
     .team-name { font-size: 1.8rem; text-align: center; color: white; background-color: #292929; padding: 25px; border-radius: 10px; font-weight: bold; }
     .titleInfo { font-size: 1rem; margin-bottom: -7px; background-color: #444444; color: white; padding: 15px; border-radius: 10px; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+    .titleInfoP { font-size: 1rem; margin-top: -12px; margin-bottom: 5px; background-color: #444444; color: white; padding: 15px; border-radius: 10px; display: flex; justify-content: center; align-items: center; text-align: center; }
+    .titleInfoPo { font-size: 1rem; margin-top: -12px; margin-bottom: 5px; color: white; border-radius: 10px; display: flex; justify-content: center; align-items: center; text-align: center; }
     .detailsDiv { display: flex; margin-bottom: 5px; justify-content: space-around; gap: 10px; }
     .partido { display: flex; width: 100%; font-weight: bold; font-size: 1rem; background-color: #444444; color: white; padding: 15px; border-radius: 10px; align-items: center; justify-content: center; }
     .verde { color: #00ff88; }
@@ -226,13 +228,116 @@
               <div class="partido" style="font-size: 25px; font-style: italic; width: fit-content;">${(parseInt(hora.split(":")[0]) + 1) + ":" + hora.split(":")[1]}</div>
               <div class="nombreEquipo partido ${!esCasaProx ? 'verde' : ''}">${tablaData[0].equipo_2}</div>
           `;
-          teamContainer.appendChild(nextDetails);   
+          teamContainer.appendChild(nextDetails);
+
+          cargaProbabilidad();
 
           cargaCalendario();
 
           function nombreClasif(nombre) {
             if (nombre == "CD Derio") return "cd_derio";
             if (nombre == "SD Eibar B") return "eibar_b";
+          }
+
+          async function cargaProbabilidad() {
+            try {
+              const refClas = doc(db, "seguimiento_futbol", `clasificacion_${nombreClasif(teamName)}`);
+              const snapClas = await getDoc(refClas);
+              const data = snapClas.data();
+              const tablaClas = data.tabla;
+
+              const local = {
+                nombre: tablaData[0].equipo_1 == "Eibar B" ? "S.D. Eibar B" : tablaData[0].equipo_1 == "CD Derio" ? "C.D. Derio" : tablaData[0].equipo_1,
+                posicion: 0,
+                jugados: 0,
+                ganados: 0,
+                empatados: 0,
+                perdidos: 0
+              }
+
+              const visitante = {
+                nombre: tablaData[0].equipo_2 == "Eibar B" ? "S.D. Eibar B" : tablaData[0].equipo_2 == "CD Derio" ? "C.D. Derio" : tablaData[0].equipo_2,
+                posicion: 0,
+                jugados: 0,
+                ganados: 0,
+                empatados: 0,
+                perdidos: 0
+              }
+
+              tablaClas.forEach((element, index) => {
+                if (element.nombre.replace(".","").replace(".","").replace(".","") == local.nombre.replace(".","").replace(".","").replace(".","")) {
+                  local.posicion = index + 1;
+                  local.jugados = parseInt(element.Jugados);
+                  local.ganados = parseInt(element.Ganados);
+                  local.empatados = parseInt(element.Empatados);
+                  local.perdidos = parseInt(element.Perdidos);
+                }
+                if (element.nombre.replace(".","").replace(".","").replace(".","") == visitante.nombre.replace(".","").replace(".","").replace(".","")) {
+                  visitante.posicion = index + 1;
+                  visitante.jugados = parseInt(element.Jugados);
+                  visitante.ganados = parseInt(element.Ganados);
+                  visitante.empatados = parseInt(element.Empatados);
+                  visitante.perdidos = parseInt(element.Perdidos);
+                }
+              });
+
+              // 1. Puntos por Clasificación (Tu lógica original)
+              const ptsClasifL = (21 - local.posicion) * 2;
+              const ptsClasifV = (21 - visitante.posicion) * 2;
+
+              // 2. Puntos por Rendimiento (Victorias/Partidos)
+              const rendimientoL = (local.ganados / local.jugados) * 50 || 0;
+              const rendimientoV = (visitante.ganados / visitante.jugados) * 50 || 0;
+
+              // 3. Estado de Forma (V=15, E=7, D=0)
+              const puntosForma = (res) => (res === 'V' ? 15 : res === 'E' ? 7 : 0);
+              const formaL = puntosForma(local.ultimo);
+              const formaV = puntosForma(visitante.ultimo);
+
+              // --- AJUSTE PRO-LOCAL ---
+              // Subimos el bono de casa a +12 (antes +5)
+              // Y aplicamos un factor de 1.1 al rendimiento local para potenciarlo
+              let scoreL = ptsClasifL + (rendimientoL * 1.1) + formaL + 7.5; 
+
+              // Al visitante le mantenemos su score base (sin bonos extra)
+              let scoreV = ptsClasifV + rendimientoV + formaV;
+
+              // --- CÁLCULO DE PORCENTAJES ---
+              const total = scoreL + scoreV;
+              let probL = Math.round((scoreL / total) * 100);
+              let probV = Math.round((scoreV / total) * 100);
+
+              // Ajuste de empate (Tu lógica de diferencia)
+              const diff = Math.abs(probL - probV);
+              let probE = Math.max(20, 30 - diff); 
+
+              // Recalibrar para que el total sea 100%
+              const totalFinal = probL + probV + probE;
+              probL = Math.round((probL / totalFinal) * 100);
+              probV = Math.round((probV / totalFinal) * 100);
+              probE = 100 - probL - probV;
+
+              const nextTitle = document.createElement("div");
+              nextTitle.className = "titleInfoP";
+              nextTitle.innerHTML = `<h3>ANÁLISIS DE PROBABILIDADES</h3>`;
+              teamContainer.appendChild(nextTitle);
+
+              const nextTitleP = document.createElement("div");
+              nextTitleP.className = "titleInfoPo";
+              nextTitleP.style.display = "flex";
+              nextTitleP.style.width = "100%";
+              nextTitleP.style.borderRadius = "10px";
+              nextTitleP.style.overflow = "hidden";
+
+              nextTitleP.innerHTML = `
+                <div style="background-color: #333333; width: ${probL}%; padding-top: 10px; height: 30px; font-weight: bold; font-style: italic; font-size: 10px" title="Local">${local.nombre.replace(".","").replace(".","").replace(".","")} - ${probL}%</div>
+                <div style="background-color: #757575; width: ${probE}%; padding-top: 10px; height: 30px; font-weight: bold; font-style: italic; font-size: 10px" title="Empate">X - ${probE}%</div>
+                <div style="background-color: #212121; width: ${probV}%; padding-top: 10px; height: 30px; font-weight: bold; font-style: italic; font-size: 10px" title="Visitante">${visitante.nombre.replace(".","").replace(".","").replace(".","")} - ${probV}%</div>
+              `;
+              teamContainer.appendChild(nextTitleP);
+            } catch(error) {
+              console.error("Error al cargar probabilidades: " + error);
+            }
           }
 
           try {
@@ -572,7 +677,110 @@
           `;
           teamContainer.appendChild(nextDetails);
 
+          cargaProbabilidad();
+
           cargaCalendario();
+
+          async function cargaProbabilidad() {
+            try {
+              const refClas = doc(db, "seguimiento_futbol", `clasificacion_fc_cartagena`);
+              const snapClas = await getDoc(refClas);
+              const data = snapClas.data();
+              const tablaClas = data.tabla;
+
+              const local = {
+                nombre: tablaData[0].equipo_1 == "Cartagena" ? "F.C. Cartagena" : tablaData[0].equipo_1,
+                posicion: 0,
+                jugados: 0,
+                ganados: 0,
+                empatados: 0,
+                perdidos: 0
+              }
+
+              const visitante = {
+                nombre: tablaData[0].equipo_2 == "cartagena" ? "F.C. Cartagena" : tablaData[0].equipo_2,
+                posicion: 0,
+                jugados: 0,
+                ganados: 0,
+                empatados: 0,
+                perdidos: 0
+              }
+
+              tablaClas.forEach((element, index) => {
+                if (element.nombre.replace(".","").replace(".","").replace(".","") == local.nombre.replace(".","").replace(".","").replace(".","")) {
+                  local.posicion = index + 1;
+                  local.jugados = parseInt(element.Jugados);
+                  local.ganados = parseInt(element.Ganados);
+                  local.empatados = parseInt(element.Empatados);
+                  local.perdidos = parseInt(element.Perdidos);
+                }
+                if (element.nombre.replace(".","").replace(".","").replace(".","") == visitante.nombre.replace(".","").replace(".","").replace(".","")) {
+                  visitante.posicion = index + 1;
+                  visitante.jugados = parseInt(element.Jugados);
+                  visitante.ganados = parseInt(element.Ganados);
+                  visitante.empatados = parseInt(element.Empatados);
+                  visitante.perdidos = parseInt(element.Perdidos);
+                }
+              });
+
+              // 1. Puntos por Clasificación (Tu lógica original)
+              const ptsClasifL = (21 - local.posicion) * 2;
+              const ptsClasifV = (21 - visitante.posicion) * 2;
+
+              // 2. Puntos por Rendimiento (Victorias/Partidos)
+              const rendimientoL = (local.ganados / local.jugados) * 50 || 0;
+              const rendimientoV = (visitante.ganados / visitante.jugados) * 50 || 0;
+
+              // 3. Estado de Forma (V=15, E=7, D=0)
+              const puntosForma = (res) => (res === 'V' ? 15 : res === 'E' ? 7 : 0);
+              const formaL = puntosForma(local.ultimo);
+              const formaV = puntosForma(visitante.ultimo);
+
+              // --- AJUSTE PRO-LOCAL ---
+              // Subimos el bono de casa a +12 (antes +5)
+              // Y aplicamos un factor de 1.1 al rendimiento local para potenciarlo
+              let scoreL = ptsClasifL + (rendimientoL * 1.1) + formaL + 7.5; 
+
+              // Al visitante le mantenemos su score base (sin bonos extra)
+              let scoreV = ptsClasifV + rendimientoV + formaV;
+
+              // --- CÁLCULO DE PORCENTAJES ---
+              const total = scoreL + scoreV;
+              let probL = Math.round((scoreL / total) * 100);
+              let probV = Math.round((scoreV / total) * 100);
+
+              // Ajuste de empate (Tu lógica de diferencia)
+              const diff = Math.abs(probL - probV);
+              let probE = Math.max(20, 30 - diff); 
+
+              // Recalibrar para que el total sea 100%
+              const totalFinal = probL + probV + probE;
+              probL = Math.round((probL / totalFinal) * 100);
+              probV = Math.round((probV / totalFinal) * 100);
+              probE = 100 - probL - probV;
+
+              const nextTitle = document.createElement("div");
+              nextTitle.className = "titleInfoP";
+              nextTitle.innerHTML = `<h3>ANÁLISIS DE PROBABILIDADES</h3>`;
+              teamContainer.appendChild(nextTitle);
+
+              const nextTitleP = document.createElement("div");
+              nextTitleP.className = "titleInfoPo";
+              nextTitleP.style.display = "flex";
+              nextTitleP.style.width = "100%";
+              nextTitleP.style.borderRadius = "10px";
+              nextTitleP.style.overflow = "hidden";
+
+              nextTitleP.innerHTML = `
+                <div style="background-color: #333333; width: ${probL}%; padding-top: 10px; height: 30px; font-weight: bold; font-style: italic; font-size: 10px" title="Local">${local.nombre.replace(".","").replace(".","").replace(".","")} - ${probL}%</div>
+                <div style="background-color: #757575; width: ${probE}%; padding-top: 10px; height: 30px; font-weight: bold; font-style: italic; font-size: 10px" title="Empate">X - ${probE}%</div>
+                <div style="background-color: #212121; width: ${probV}%; padding-top: 10px; height: 30px; font-weight: bold; font-style: italic; font-size: 10px" title="Visitante">${visitante.nombre.replace(".","").replace(".","").replace(".","")} - ${probV}%</div>
+              `;
+              teamContainer.appendChild(nextTitleP);
+            } catch(error) {
+              console.error("Error al cargar probabilidades: " + error);
+            }
+          }
           
           try {
             const refClas = doc(db, "seguimiento_futbol", `clasificacion_fc_cartagena`);
@@ -882,7 +1090,115 @@
           teamContainer.appendChild(nextDetails);
         }
 
-        cargaCalendario();
+        const refClas = doc(db, "seguimiento_futbol", `lista_partidos_indartsu`);
+          const snapClas = await getDoc(refClas);
+          const data = snapClas.data();
+          const tablaData = data.partidos;
+
+        cargaProbabilidad();
+
+          cargaCalendario();
+
+          async function cargaProbabilidad() {
+            try {
+              const refClas = doc(db, "seguimiento_futbol", `clasificacion_indartsu`);
+              const snapClas = await getDoc(refClas);
+              const data = snapClas.data();
+              const tablaClas = data.tabla;
+
+              const local = {
+                nombre: tablaData[0].equipo_1,
+                posicion: 0,
+                jugados: 0,
+                ganados: 0,
+                empatados: 0,
+                perdidos: 0
+              }
+
+              const visitante = {
+                nombre: tablaData[0].equipo_2,
+                posicion: 0,
+                jugados: 0,
+                ganados: 0,
+                empatados: 0,
+                perdidos: 0
+              }
+
+              tablaClas.forEach((element, index) => {
+                if (element.nombre.replace(".","").replace(".","").replace(".","") == local.nombre.replace(".","").replace(".","").replace(".","")) {
+                  local.posicion = index + 1;
+                  local.jugados = parseInt(element.Jugados);
+                  local.ganados = parseInt(element.Ganados);
+                  local.empatados = parseInt(element.Empatados);
+                  local.perdidos = parseInt(element.Perdidos);
+                }
+                if (element.nombre.replace(".","").replace(".","").replace(".","") == visitante.nombre.replace(".","").replace(".","").replace(".","")) {
+                  visitante.posicion = index + 1;
+                  visitante.jugados = parseInt(element.Jugados);
+                  visitante.ganados = parseInt(element.Ganados);
+                  visitante.empatados = parseInt(element.Empatados);
+                  visitante.perdidos = parseInt(element.Perdidos);
+                }
+              });
+
+              // 1. Puntos por Clasificación (Tu lógica original)
+              const ptsClasifL = (21 - local.posicion) * 2;
+              const ptsClasifV = (21 - visitante.posicion) * 2;
+
+              // 2. Puntos por Rendimiento (Victorias/Partidos)
+              const rendimientoL = (local.ganados / local.jugados) * 50 || 0;
+              const rendimientoV = (visitante.ganados / visitante.jugados) * 50 || 0;
+
+              // 3. Estado de Forma (V=15, E=7, D=0)
+              const puntosForma = (res) => (res === 'V' ? 15 : res === 'E' ? 7 : 0);
+              const formaL = puntosForma(local.ultimo);
+              const formaV = puntosForma(visitante.ultimo);
+
+              // --- AJUSTE PRO-LOCAL ---
+              // Subimos el bono de casa a +12 (antes +5)
+              // Y aplicamos un factor de 1.1 al rendimiento local para potenciarlo
+              let scoreL = ptsClasifL + (rendimientoL * 1.1) + formaL + 7.5; 
+
+              // Al visitante le mantenemos su score base (sin bonos extra)
+              let scoreV = ptsClasifV + rendimientoV + formaV;
+
+              // --- CÁLCULO DE PORCENTAJES ---
+              const total = scoreL + scoreV;
+              let probL = Math.round((scoreL / total) * 100);
+              let probV = Math.round((scoreV / total) * 100);
+
+              // Ajuste de empate (Tu lógica de diferencia)
+              const diff = Math.abs(probL - probV);
+              let probE = Math.max(20, 30 - diff); 
+
+              // Recalibrar para que el total sea 100%
+              const totalFinal = probL + probV + probE;
+              probL = Math.round((probL / totalFinal) * 100);
+              probV = Math.round((probV / totalFinal) * 100);
+              probE = 100 - probL - probV;
+
+              const nextTitle = document.createElement("div");
+              nextTitle.className = "titleInfoP";
+              nextTitle.innerHTML = `<h3>ANÁLISIS DE PROBABILIDADES</h3>`;
+              teamContainer.appendChild(nextTitle);
+
+              const nextTitleP = document.createElement("div");
+              nextTitleP.className = "titleInfoPo";
+              nextTitleP.style.display = "flex";
+              nextTitleP.style.width = "100%";
+              nextTitleP.style.borderRadius = "10px";
+              nextTitleP.style.overflow = "hidden";
+
+              nextTitleP.innerHTML = `
+                <div style="background-color: #333333; width: ${probL}%; padding-top: 10px; height: 30px; font-weight: bold; font-style: italic; font-size: 10px" title="Local">${formatearNombreEquipo(local.nombre.replace(".","").replace(".","").replace(".","").replace(`"`, "").replace(`"`, ""))} - ${probL}%</div>
+                <div style="background-color: #757575; width: ${probE}%; padding-top: 10px; height: 30px; font-weight: bold; font-style: italic; font-size: 10px" title="Empate">X - ${probE}%</div>
+                <div style="background-color: #212121; width: ${probV}%; padding-top: 10px; height: 30px; font-weight: bold; font-style: italic; font-size: 10px" title="Visitante">${formatearNombreEquipo(visitante.nombre.replace(".","").replace(".","").replace(".","").replace(`"`, "").replace(`"`, ""))} - ${probV}%</div>
+              `;
+              teamContainer.appendChild(nextTitleP);
+            } catch(error) {
+              console.error("Error al cargar probabilidades: " + error);
+            }
+          }
 
         try {
           const refClas = doc(db, "seguimiento_futbol", "clasificacion_indartsu");
