@@ -723,6 +723,9 @@
                 }
               });
 
+              console.log("Local:", local);
+              console.log("Visitante:", visitante);
+
               // 1. Puntos por Clasificación (Tu lógica original)
               const ptsClasifL = (21 - local.posicion) * 2;
               const ptsClasifV = (21 - visitante.posicion) * 2;
@@ -1127,17 +1130,17 @@
               tablaClas.forEach((element, index) => {
                 if (element.nombre.replace(".","").replace(".","").replace(".","") == local.nombre.replace(".","").replace(".","").replace(".","")) {
                   local.posicion = index + 1;
-                  local.jugados = parseInt(element.Jugados);
-                  local.ganados = parseInt(element.Ganados);
-                  local.empatados = parseInt(element.Empatados);
-                  local.perdidos = parseInt(element.Perdidos);
+                  local.jugados = parseInt(element.JugadosCasa) + parseInt(element.JugadosFuera);
+                  local.ganados = parseInt(element.GanadosCasa) + parseInt(element.GanadosFuera);
+                  local.empatados = parseInt(element.EmpatadosCasa) + parseInt(element.EmpatadosFuera);
+                  local.perdidos = parseInt(element.PerdidosCasa) + parseInt(element.PerdidosFuera);
                 }
                 if (element.nombre.replace(".","").replace(".","").replace(".","") == visitante.nombre.replace(".","").replace(".","").replace(".","")) {
                   visitante.posicion = index + 1;
-                  visitante.jugados = parseInt(element.Jugados);
-                  visitante.ganados = parseInt(element.Ganados);
-                  visitante.empatados = parseInt(element.Empatados);
-                  visitante.perdidos = parseInt(element.Perdidos);
+                  visitante.jugados = parseInt(element.JugadosCasa) + parseInt(element.JugadosFuera);
+                  visitante.ganados = parseInt(element.GanadosCasa) + parseInt(element.GanadosFuera);
+                  visitante.empatados = parseInt(element.EmpatadosCasa) + parseInt(element.EmpatadosFuera);
+                  visitante.perdidos = parseInt(element.PerdidosCasa) + parseInt(element.PerdidosFuera);
                 }
               });
 
