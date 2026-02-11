@@ -230,7 +230,7 @@
           `;
           teamContainer.appendChild(nextDetails);
 
-          cargaProbabilidad();
+          await cargaProbabilidad();
 
           cargaCalendario();
 
@@ -677,7 +677,7 @@
           `;
           teamContainer.appendChild(nextDetails);
 
-          cargaProbabilidad();
+          await cargaProbabilidad();
 
           cargaCalendario();
 
@@ -1095,9 +1095,9 @@
           const data = snapClas.data();
           const tablaData = data.partidos;
 
-        cargaProbabilidad();
+        await cargaProbabilidad();
 
-          cargaCalendario();
+        cargaCalendario();
 
           async function cargaProbabilidad() {
             try {
