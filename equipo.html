@@ -55,7 +55,7 @@
   const params = new URLSearchParams(window.location.search);
   const teamName = params.get("team");
   const teamContainer = document.getElementById("teamInfo");
-  let equipoMapa = teamName == "SD Eibar B" ? "eibar b" : teamName == "CD Derio" ? "derio" : teamName == "FC Cartagena" ? "cartagena" : "indartsu";
+  let equipoMapa = teamName == "SD Eibar B" ? "eibar b" : teamName == "CD Derio" ? "cd derio" : teamName == "FC Cartagena" ? "cartagena" : "indartsu";
   // Variable global para controlar la instancia del mapa y evitar errores de duplicidad
   let mapaInstance = null;
 
@@ -1653,13 +1653,13 @@
     nextTitle.innerHTML = `<h3 style="text-transform: uppercase;">VIAJES DE ${nombreMes}</h3>`;
 
     try {
-        let categoria = equipo == "eibar b" ? "Segunda RFEF" : equipo == "derio" ? "Tercera RFEF" : equipo == "cartagena" ? "PrimeraRFEF" : "Primera REG";
+        let categoria = equipo == "eibar b" ? "Segunda RFEF" : equipo == "cd derio" ? "Tercera RFEF" : equipo == "cartagena" ? "PrimeraRFEF" : "Primera REG";
         const refCoords = doc(db, "CoordsEquipos", categoria);
         const snapCoords = await getDoc(refCoords);
         if (!snapCoords.exists()) return;
         const listaCoords = snapCoords.data().TablaCoordenadas;
 
-        let equipoLista = equipo == "eibar b" ? "eibar_b" : equipo == "derio" ? "derio" : equipo == "cartagena" ? "cartagena" : "indartsu";
+        let equipoLista = equipo == "eibar b" ? "eibar_b" : equipo == "cd derio" ? "derio" : equipo == "cartagena" ? "cartagena" : "indartsu";
         const refPartidos = doc(db, "seguimiento_futbol", "lista_partidos_" + equipoLista);
         const snapPartidos = await getDoc(refPartidos);
         if (!snapPartidos.exists()) return;
