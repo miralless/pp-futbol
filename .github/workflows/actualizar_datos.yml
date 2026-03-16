@@ -1,40 +1,39 @@
-name: Actualizar Firebase Futbol
+name: Node CI
 
 on:
-  schedule:
-    # Lunes a Jueves (1-4): Cada 3 horas
-    - cron: '0 */3 * * 1-4'
-    
-    # Viernes y Sábado (5-6): Cada hora
-    - cron: '0 * * * 5-6'
-    
-    # Domingo (0): Cada hora
-    - cron: '0 * * * 0'
-    
-  workflow_dispatch:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ./functions
+    
+    # 1. LIMITA EL TIEMPO: Si no termina en 15 min, aborta. No más esperas de 6 horas.
+    timeout-minutes: 15
+
+    env:
+      # 2. OPT-IN A NODE 24: Elimina el aviso de depreciación y usa la versión moderna.
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+      # Evita que herramientas pregunten cosas al usuario (modo no interactivo)
+      CI: true
+
     steps:
-      - name: Checkout del código
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Configurar Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20' # Usamos una versión estable y moderna
+          # Usamos la versión 22 o 24 que son las recomendadas ahora
+          node-version: '22' 
+          # 3. CACHE: Esto hará que las dependencias se instalen volando tras la primera vez
+          cache: 'npm'
 
-      - name: Instalar dependencias de Node
+      - name: Install dependencies
+        # 4. LIMPIEZA: 'npm ci' es más rápido y seguro en entornos de servidor que 'npm install'
         run: npm ci
 
-      - name: Instalar Chrome para Puppeteer
-        run: npx puppeteer browsers install chrome
-
-      - name: Ejecutar script
-        env:
-          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
-        run: node index.js
+      - name: Build or Test
+        run: npm run build --if-present
